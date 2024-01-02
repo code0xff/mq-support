@@ -86,8 +86,21 @@ pub fn new_partial(
 
 	let select_chain = sc_consensus::LongestChain::new(backend.clone());
 
+	let transaction_pool = sc_transaction_pool::graph::Options {
+		ready: sc_transaction_pool::graph::base_pool::Limit {
+			count: config.transaction_pool.ready.count,
+			total_bytes: config.transaction_pool.ready.total_bytes,
+		},
+		future: sc_transaction_pool::graph::base_pool::Limit {
+			count: config.transaction_pool.future.count,
+			total_bytes: config.transaction_pool.future.total_bytes,
+		},
+		reject_future_transactions: config.transaction_pool.reject_future_transactions,
+		ban_time: config.transaction_pool.ban_time.clone(),
+	};
+
 	let transaction_pool = sc_transaction_pool::BasicPool::new_full(
-		config.transaction_pool.clone(),
+		transaction_pool,
 		config.role.is_authority().into(),
 		config.prometheus_registry(),
 		task_manager.spawn_essential_handle(),
