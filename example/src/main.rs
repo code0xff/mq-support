@@ -1,4 +1,4 @@
-use zeromq::MessageQueueWorker;
+use sc_mq::MessageQueueWorker;
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {

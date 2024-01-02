@@ -1,7 +1,11 @@
 [package]
-name = "zeromq"
-version = "0.1.0"
+name = "sc-mq-example"
+version = "0.0.1"
 edition = "2021"
+description = "Example for Substrate Message Queue"
+authors = ["code0xff <ian.jungyong.um@gmail.com>"]
+license = "APACHE-2.0"
+repository = "https://github.com/code0xff/mq-support/"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -14,4 +18,4 @@ tokio = { version = "1.35.1", features = [
   "macros",
   "time",
 ] }
-zeromq = { version = "0.0.1", path = "../client/zeromq" }
+sc-mq = { version = "0.0.1", path = "../client/mq" }

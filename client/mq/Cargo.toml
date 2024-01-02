@@ -1,7 +1,11 @@
 [package]
-name = "zeromq"
+name = "sc-mq"
 version = "0.0.1"
+description = "Substrate Message Queue"
+authors = ["code0xff <ian.jungyong.um@gmail.com>"]
 edition = "2021"
+license = "APACHE-2.0"
+repository = "https://github.com/code0xff/mq-support/"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

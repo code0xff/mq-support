@@ -528,6 +528,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "sc-mq"
+version = "0.0.1"
+dependencies = [
+ "futures",
+ "serde",
+ "serde_json",
+ "zmq",
+]
+
+[[package]]
+name = "sc-mq-example"
+version = "0.0.1"
+dependencies = [
+ "chrono",
+ "sc-mq",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "serde"
 version = "1.0.193"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -906,26 +926,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9b5c3db89721d50d0e2a673f5043fc4722f76dcc352d7b1ab8b8288bed4ed2c5"
 dependencies = [
  "memchr",
-]
-
-[[package]]
-name = "zeromq"
-version = "0.0.1"
-dependencies = [
- "futures",
- "serde",
- "serde_json",
- "zmq",
-]
-
-[[package]]
-name = "zeromq"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "serde_json",
- "tokio",
- "zeromq 0.0.1",
 ]
 
 [[package]]

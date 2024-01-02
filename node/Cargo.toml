@@ -53,6 +53,8 @@ sc-basic-authorship = { git = "https://github.com/paritytech/polkadot-sdk", bran
 substrate-frame-rpc-system = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }
 pallet-transaction-payment-rpc = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }
 
+sc-mq = { version = "0.0.1", path = "../client/mq" }
+
 # Local Dependencies
 node-template-runtime = { version = "4.0.0-dev", path = "../runtime" }
 
