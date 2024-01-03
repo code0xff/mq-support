@@ -245,7 +245,7 @@ where
 
 		for xt in xts.iter() {
 			let tx = xt.encode();
-			let _ = self.queue.clone().try_send("tx-pool-added", tx);
+			let _ = self.queue.clone().try_send("txpool_add", tx);
 		}
 
 		async move { pool.submit_at(&at, source, xts).await }.boxed()
@@ -263,7 +263,7 @@ where
 		self.metrics.report(|metrics| metrics.submitted_transactions.inc());
 
 		let tx = xt.encode();
-		let _ = self.queue.clone().try_send("tx-pool-added", tx);
+		let _ = self.queue.clone().try_send("json-minimal-txpool_addjson-minimal-txpool_addjson-minimal-txpool_add", tx);
 
 		async move { pool.submit_one(&at, source, xt).await }.boxed()
 	}
@@ -280,7 +280,7 @@ where
 		self.metrics.report(|metrics| metrics.submitted_transactions.inc());
 
 		let tx = xt.encode();
-		let _ = self.queue.clone().try_send("tx-pool-added", tx);
+		let _ = self.queue.clone().try_send("txpool_add", tx);
 
 		async move {
 			let watcher = pool.submit_and_watch(&at, source, xt).await?;
