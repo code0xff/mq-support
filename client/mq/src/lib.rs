@@ -3,7 +3,7 @@ use futures::{SinkExt, StreamExt};
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct Message {
 	topic: String,
-	message: serde_json::Value,
+	data: Vec<u8>,
 }
 
 #[derive(Clone)]
@@ -16,13 +16,13 @@ impl MessageQueue {
 		Self { sender }
 	}
 
-	pub async fn send(
+	pub fn try_send(
 		mut self,
 		topic: &str,
-		message: &serde_json::Value,
-	) -> Result<(), futures::channel::mpsc::SendError> {
-		let message = Message { topic: topic.to_string(), message: message.clone() };
-		self.sender.send(message).await
+		data: Vec<u8>,
+	) -> Result<(), futures::channel::mpsc::TrySendError<Message>> {
+		let message = Message { topic: topic.to_string(), data };
+		self.sender.try_send(message)
 	}
 }
 
@@ -43,9 +43,9 @@ impl MessageQueueWorker {
 }
 
 impl MessageQueueWorker {
-	pub fn publish(&self, topic: &str, message: &str) -> Result<(), zmq::Error> {
+	pub fn publish(&self, topic: &str, data: &Vec<u8>) -> Result<(), zmq::Error> {
 		self.socket.send(topic, zmq::SNDMORE)?;
-		self.socket.send(message, 0)?;
+		self.socket.send(data, 0)?;
 		Ok(())
 	}
 
@@ -55,8 +55,8 @@ impl MessageQueueWorker {
 
 	pub async fn run(mut self) {
 		while let Some(message) = self.receiver.next().await {
-			let Message { topic, message } = message;
-			let _ = self.publish(topic.as_str(), message.to_string().as_str());
+			let Message { topic, data } = message;
+			let _ = self.publish(topic.as_str(), &data);
 		}
 	}
 }

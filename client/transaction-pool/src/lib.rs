@@ -33,6 +33,7 @@ mod tests;
 
 pub use crate::api::FullChainApi;
 use async_trait::async_trait;
+use codec::Encode;
 use enactment_state::{EnactmentAction, EnactmentState};
 use futures::{
 	channel::oneshot,
@@ -43,6 +44,7 @@ pub use graph::{
 	base_pool::Limit as PoolLimit, ChainApi, Options, Pool, Transaction, ValidatedTransaction,
 };
 use parking_lot::Mutex;
+use sc_mq::MessageQueue;
 use std::{
 	collections::{HashMap, HashSet},
 	pin::Pin,
@@ -93,6 +95,7 @@ where
 	ready_poll: Arc<Mutex<ReadyPoll<ReadyIteratorFor<PoolApi>, Block>>>,
 	metrics: PrometheusMetrics,
 	enactment_state: Arc<Mutex<EnactmentState<Block>>>,
+	queue: MessageQueue,
 }
 
 struct ReadyPoll<T, Block: BlockT> {
@@ -159,32 +162,6 @@ where
 	Block: BlockT,
 	PoolApi: graph::ChainApi<Block = Block> + 'static,
 {
-	/// Create new basic transaction pool with provided api, for tests.
-	pub fn new_test(
-		pool_api: Arc<PoolApi>,
-		best_block_hash: Block::Hash,
-		finalized_hash: Block::Hash,
-	) -> (Self, Pin<Box<dyn Future<Output = ()> + Send>>) {
-		let pool = Arc::new(graph::Pool::new(Default::default(), true.into(), pool_api.clone()));
-		let (revalidation_queue, background_task) =
-			revalidation::RevalidationQueue::new_background(pool_api.clone(), pool.clone());
-		(
-			Self {
-				api: pool_api,
-				pool,
-				revalidation_queue: Arc::new(revalidation_queue),
-				revalidation_strategy: Arc::new(Mutex::new(RevalidationStrategy::Always)),
-				ready_poll: Default::default(),
-				metrics: Default::default(),
-				enactment_state: Arc::new(Mutex::new(EnactmentState::new(
-					best_block_hash,
-					finalized_hash,
-				))),
-			},
-			background_task,
-		)
-	}
-
 	/// Create new basic transaction pool with provided api and custom
 	/// revalidation type.
 	pub fn with_revalidation_type(
@@ -197,6 +174,7 @@ where
 		best_block_number: NumberFor<Block>,
 		best_block_hash: Block::Hash,
 		finalized_hash: Block::Hash,
+		message_queue: MessageQueue,
 	) -> Self {
 		let pool = Arc::new(graph::Pool::new(options, is_validator, pool_api.clone()));
 		let (revalidation_queue, background_task) = match revalidation_type {
@@ -228,6 +206,7 @@ where
 				best_block_hash,
 				finalized_hash,
 			))),
+			queue: message_queue
 		}
 	}
 
@@ -264,6 +243,11 @@ where
 		self.metrics
 			.report(|metrics| metrics.submitted_transactions.inc_by(xts.len() as u64));
 
+		for xt in xts.iter() {
+			let tx = xt.encode();
+			let _ = self.queue.clone().try_send("tx-pool-added", tx);
+		}
+
 		async move { pool.submit_at(&at, source, xts).await }.boxed()
 	}
 
@@ -278,6 +262,9 @@ where
 
 		self.metrics.report(|metrics| metrics.submitted_transactions.inc());
 
+		let tx = xt.encode();
+		let _ = self.queue.clone().try_send("tx-pool-added", tx);
+
 		async move { pool.submit_one(&at, source, xt).await }.boxed()
 	}
 
@@ -291,6 +278,9 @@ where
 		let pool = self.pool.clone();
 
 		self.metrics.report(|metrics| metrics.submitted_transactions.inc());
+
+		let tx = xt.encode();
+		let _ = self.queue.clone().try_send("tx-pool-added", tx);
 
 		async move {
 			let watcher = pool.submit_and_watch(&at, source, xt).await?;
@@ -388,6 +378,7 @@ where
 		prometheus: Option<&PrometheusRegistry>,
 		spawner: impl SpawnEssentialNamed,
 		client: Arc<Client>,
+		queue: MessageQueue
 	) -> Arc<Self> {
 		let pool_api = Arc::new(FullChainApi::new(client.clone(), prometheus, &spawner));
 		let pool = Arc::new(Self::with_revalidation_type(
@@ -400,6 +391,7 @@ where
 			client.usage_info().chain.best_number,
 			client.usage_info().chain.best_hash,
 			client.usage_info().chain.finalized_hash,
+			queue,
 		));
 
 		pool

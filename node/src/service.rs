@@ -6,6 +6,7 @@ use sc_client_api::{Backend, BlockBackend};
 use sc_consensus_aura::{ImportQueueParams, SlotProportion, StartAuraParams};
 use sc_consensus_grandpa::SharedVoterState;
 pub use sc_executor::NativeElseWasmExecutor;
+use sc_mq::MessageQueueWorker;
 use sc_service::{error::Error as ServiceError, Configuration, TaskManager, WarpSyncParams};
 use sc_telemetry::{Telemetry, TelemetryWorker};
 use sc_transaction_pool_api::OffchainTransactionPoolFactory;
@@ -99,12 +100,17 @@ pub fn new_partial(
 		ban_time: config.transaction_pool.ban_time.clone(),
 	};
 
+	let worker = MessageQueueWorker::new("tcp://127.0.0.1:13080", 32);
+	let queue = worker.queue();
+	task_manager.spawn_handle().spawn("message_queue", None, worker.run());
+
 	let transaction_pool = sc_transaction_pool::BasicPool::new_full(
 		transaction_pool,
 		config.role.is_authority().into(),
 		config.prometheus_registry(),
 		task_manager.spawn_essential_handle(),
 		client.clone(),
+		queue.clone(),
 	);
 
 	let (grandpa_block_import, grandpa_link) = sc_consensus_grandpa::block_import(

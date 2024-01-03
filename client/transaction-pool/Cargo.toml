@@ -28,6 +28,7 @@ sp-core = { git = "https://github.com/paritytech/polkadot-sdk", branch = "releas
 sp-runtime = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }
 sp-tracing = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }
 sp-transaction-pool = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }
+sc-mq = { version = "0.0.1", path = "../mq" }
 
 [dev-dependencies]
 array-bytes = "6.1"
