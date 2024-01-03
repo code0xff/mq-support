@@ -206,7 +206,7 @@ where
 				best_block_hash,
 				finalized_hash,
 			))),
-			queue: message_queue
+			queue: message_queue,
 		}
 	}
 
@@ -263,7 +263,7 @@ where
 		self.metrics.report(|metrics| metrics.submitted_transactions.inc());
 
 		let tx = xt.encode();
-		let _ = self.queue.clone().try_send("json-minimal-txpool_addjson-minimal-txpool_addjson-minimal-txpool_add", tx);
+		let _ = self.queue.clone().try_send("txpool_add", tx);
 
 		async move { pool.submit_one(&at, source, xt).await }.boxed()
 	}
@@ -378,7 +378,7 @@ where
 		prometheus: Option<&PrometheusRegistry>,
 		spawner: impl SpawnEssentialNamed,
 		client: Arc<Client>,
-		queue: MessageQueue
+		queue: MessageQueue,
 	) -> Arc<Self> {
 		let pool_api = Arc::new(FullChainApi::new(client.clone(), prometheus, &spawner));
 		let pool = Arc::new(Self::with_revalidation_type(
