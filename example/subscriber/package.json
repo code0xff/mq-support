@@ -4,7 +4,7 @@
   "description": "Message Queue subscriber example for sc-mq",
   "main": "./src/index.js",
   "scripts": {
-    "test": "node ./src/index.js"
+    "start": "node ./src/index.js"
   },
   "keywords": [],
   "author": "code0xff <ian.jungyong.um@gmail.com>",
