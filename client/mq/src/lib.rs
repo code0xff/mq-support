@@ -1,4 +1,4 @@
-use futures::{SinkExt, StreamExt};
+use futures::StreamExt;
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct Message {
